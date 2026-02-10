@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Medidor de Furia</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f1220">
+
+  <style>
+    :root {
+      --bg: #0f1220;
+      --card: rgba(255,255,255,0.10);
+      --safe: #4caf50;
+      --warn: #ff9800;
+      --danger: #f44336;
+      --text: #ffffff;
+      --glass-border: rgba(255,255,255,0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #0b0d18, #141a3a);
+      color: var(--text);
+    }
+
+    .card {
+      background: linear-gradient(
+        180deg,
+        rgba(255,255,255,0.12),
+        rgba(255,255,255,0.04)
+      );
+      backdrop-filter: blur(22px);
+      border-radius: 28px;
+      padding: 34px;
+      width: 360px;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.55);
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 22px;
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    .meter {
+      position: relative;
+      width: 230px;
+      height: 230px;
+      margin: 0 auto 26px;
+    }
+
+    .meter svg {
+      transform: rotate(-90deg);
+    }
+
+    .meter circle {
+      fill: none;
+      stroke-width: 16;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 6px rgba(0,0,0,0.4));
+    }
+
+    .meter .bg {
+      stroke: rgba(255,255,255,0.15);
+    }
+
+    .meter .progress {
+      stroke: var(--safe);
+      transition: stroke-dashoffset 0.4s ease, stroke 0.4s ease;
+    }
+
+    .avatar {
+      position: absolute;
+      inset: 36px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid rgba(255,255,255,0.25);
+      box-shadow: 0 0 25px rgba(0,0,0,0.6);
+      transition: box-shadow 0.4s ease, transform 0.4s ease;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .status {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-bottom: 16px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      appearance: none;
+      height: 6px;
+      border-radius: 6px;
+      background: linear-gradient(
+        90deg,
+        var(--safe),
+        var(--warn),
+        var(--danger)
+      );
+      outline: none;
+      margin-top: 8px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.6);
+      cursor: pointer;
+    }
+
+    .alert {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 12px;
+      display: none;
+      font-size: 0.9rem;
+      background: rgba(244,67,54,0.2);
+      color: #ffb3b3;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>Medidor de Furia</h1>
+
+    <div class="meter">
+      <svg width="230" height="230">
+        <circle class="bg" cx="115" cy="115" r="90" />
+        <circle class="progress" cx="115" cy="115" r="90" />
+      </svg>
+
+      <div class="avatar">
+        <img src="ella.jpg" alt="Persona">
+      </div>
+    </div>
+
+    <div class="value" id="value">0%</div>
+    <div class="status" id="status">Estado: tranquilo</div>
+
+    <input type="range" min="0" max="100" value="0" id="range">
+
+    <div class="alert" id="alert">
+      Nivel crítico de furia. Evitar contacto.
+    </div>
+  </div>
+
+  <script>
+    const range = document.getElementById('range');
+    const value = document.getElementById('value');
+    const status = document.getElementById('status');
+    const alertBox = document.getElementById('alert');
+    const progress = document.querySelector('.progress');
+    const avatar = document.querySelector('.avatar');
+
+    const radius = 90;
+    const circumference = 2 * Math.PI * radius;
+
+    progress.style.strokeDasharray = circumference;
+    progress.style.strokeDashoffset = circumference;
+
+    function updateMeter(val) {
+      const offset = circumference - (val / 100) * circumference;
+      progress.style.strokeDashoffset = offset;
+      value.textContent = val + '%';
+
+      if (val < 40) {
+        progress.style.stroke = 'var(--safe)';
+        status.textContent = 'Estado: tranquilo';
+        alertBox.style.display = 'none';
+        avatar.style.boxShadow = '0 0 25px rgba(0,0,0,0.6)';
+      } else if (val < 70) {
+        progress.style.stroke = 'var(--warn)';
+        status.textContent = 'Estado: molesto';
+        alertBox.style.display = 'none';
+        avatar.style.boxShadow = '0 0 30px rgba(255,152,0,0.6)';
+      } else {
+        progress.style.stroke = 'var(--danger)';
+        status.textContent = 'Estado: furia alta';
+        alertBox.style.display = 'block';
+        avatar.style.boxShadow = '0 0 40px rgba(244,67,54,0.9)';
+      }
+    }
+
+    range.addEventListener('input', e => updateMeter(e.target.value));
+
+    // Registro del Service Worker (PWA)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js');
+      });
+    }
+  </script>
+</body>
+</html>
